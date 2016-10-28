@@ -33,6 +33,10 @@ function similar to `zeros`, `ones` and `fill`.
 
 The main caveats seem to be:
 
+ * **Only works for isbits element types.** I have no idea how to register that a 
+   region of memory contains pointers that the GC should care about, or how to
+   unregister that upon finalization.
+
  * Double inderiction resulting from the fact that the `Buffer` is a `type`
    containing a pointer. Future work on the Julia compiler which would inline
    the pointer in the `Buffer` to the stack would remove the double indirection.
