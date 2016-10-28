@@ -39,7 +39,7 @@ type ArrayOffsetBuffer{T,N}
     ptr::Ptr{Void} # Ideally this would be const
 
     function ArrayOffsetBuffer(bytes::Int)
-        out = new(malloc(bytes) + offset_size(T,N))
+        out = new(malloc(bytes+offset_bytes(T,N)) + offset_size(T,N))
         finalizer(out, _free_buffer)
         return out
     end
@@ -50,6 +50,7 @@ _free_buffer{T,N}(buf::ArrayOffsetBuffer{T,N}) = free(buf.ptr - offset_size(T,N)
 # Calculate an offset which is in multiples of 4 Ints. This *should* result in
 # good memory alignment for the first piece of data in the array (assuming
 # malloc returns an well-aligned address)
+# Also has offset for 1-based indexing
 @pure function offset_size{T}(::Type{T}, N::Int)
     @assert N >= 0
     tmp = N
@@ -58,6 +59,9 @@ _free_buffer{T,N}(buf::ArrayOffsetBuffer{T,N}) = free(buf.ptr - offset_size(T,N)
     end
     return sizeof(Int)*tmp - sizeof(T) # correction for 1-based indexing
 end
+
+# The total size of the offset padding (no 1-based indexing correction)
+@pure offset_bytes{T}(::Type{T}, N::Int) = offset_size(T,N) + sizeof(T)
 
 """
     BArray{T}(dims)

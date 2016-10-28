@@ -51,5 +51,3 @@ The main caveats seem to be:
 
  * It is assumed that the pointer in the buffer will never change - it would be
    nice if that field could be set constant.
-
- * **It seems to crash sometimes.** The problem relates to `free()`.
