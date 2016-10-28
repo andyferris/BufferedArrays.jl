@@ -39,6 +39,9 @@ The main caveats seem to be:
    (note: due the the fact that `Base.Array` is resizeable, it is the author's
    understanding that a similar double-indirection problem exists there too).
 
+ * I should remove run-time overhead of 1-based indexing (similarly possible for
+   any indexing offset).
+
  * The garbage collector will believe the size of `BArray` is that of a pointer,
    and may not prioritize deallocation of large arrays. A method to guide the
    GC on the "real" number of bytes deallocated would be useful both here and
