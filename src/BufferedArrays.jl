@@ -50,18 +50,20 @@ _free_buffer{T,N}(buf::ArrayOffsetBuffer{T,N}) = free(buf.ptr - offset_size(T,N)
 # Calculate an offset which is in multiples of 4 Ints. This *should* result in
 # good memory alignment for the first piece of data in the array (assuming
 # malloc returns an well-aligned address)
-# Also has offset for 1-based indexing
+# TODO do something faster w.r.t. one-based indexing
 @pure function offset_size{T}(::Type{T}, N::Int)
+    return offset_bytes(T,N) # - sizeof(T) # future correction for 1-based indexing
+end
+
+# The total size of the offset padding (no 1-based indexing correction, if exists)
+@pure function offset_bytes{T}(::Type{T}, N::Int)
     @assert N >= 0
     tmp = N
     while tmp % 4 != 0
         tmp += 1
     end
-    return sizeof(Int)*tmp - sizeof(T) # correction for 1-based indexing
+    return sizeof(Int)*tmp
 end
-
-# The total size of the offset padding (no 1-based indexing correction)
-@pure offset_bytes{T}(::Type{T}, N::Int) = offset_size(T,N) + sizeof(T)
 
 """
     BArray{T}(dims)
@@ -91,12 +93,12 @@ size{T,N}(a::BArray{T,N}) = unsafe_load(unsafe_convert(Ptr{NTuple{N,Int}}, a.buf
 
 @inline function getindex{T,N}(a::BArray{T,N}, i::Int)
     # @boundscheck bla
-    unsafe_load(unsafe_convert(Ptr{T}, a.buf.ptr), i)
+    unsafe_load(unsafe_convert(Ptr{T}, a.buf.ptr), i) # oh dear! This is broken since unsafe_load assumes 1-based indexing
 end
 
 @inline function setindex!{T,N}(a::BArray{T,N}, x::T, i::Int)
     # @boundscheck bla
-    unsafe_store!(unsafe_convert(Ptr{T}, a.buf.ptr), x, i)
+    unsafe_store!(unsafe_convert(Ptr{T}, a.buf.ptr), x, i)  # oh dear! This is broken since unsafe_store! assumes 1-based indexing
 end
 
 @inline unsafe_convert{T}(::Type{Ptr{T}}, a::BArray{T}) = unsafe_convert(Ptr{T}, a.buf.ptr)
